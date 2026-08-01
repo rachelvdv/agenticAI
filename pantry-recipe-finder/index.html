@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantry — find what to cook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF6EC;
+    --paper-shade:#F1EADA;
+    --ink:#23201B;
+    --ink-soft:#585349;
+    --pantry:#2B3A2F;
+    --pantry-light:#3E5245;
+    --butter:#F0BB3D;
+    --tomato:#C1440E;
+    --sage:#93A98A;
+    --sage-30:rgba(147,169,138,.35);
+    --card:#FFFDF7;
+    --line:#DCD3BE;
+    --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(35,32,27,.04) 1px, transparent 0);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4,.display{
+    font-family:'Oswald', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    margin:0;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+  :focus-visible{ outline:3px solid var(--tomato); outline-offset:2px; }
+
+  /* ---------- header ---------- */
+  header.top{
+    background:var(--pantry);
+    color:var(--paper);
+    padding:18px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky; top:0; z-index:40;
+    border-bottom:4px solid var(--butter);
+  }
+  .wordmark{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:.08em;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .wordmark .dot{color:var(--tomato);}
+  .top-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--sage);
+    letter-spacing:.05em;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    max-width:960px;
+    margin:0 auto;
+    padding:56px 24px 32px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--tomato);
+    letter-spacing:.1em;
+    margin-bottom:10px;
+  }
+  .hero h1{
+    font-size:clamp(34px,5vw,54px);
+    line-height:1.02;
+    font-weight:700;
+    color:var(--pantry);
+    max-width:14ch;
+  }
+  .hero p.lede{
+    font-size:18px;
+    color:var(--ink-soft);
+    max-width:56ch;
+    margin-top:14px;
+  }
+
+  /* ingredient input */
+  .builder{
+    margin-top:32px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:22px;
+    box-shadow:5px 5px 0 var(--sage-30);
+  }
+  .builder label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .chip-input-row{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    border-bottom:1px dashed var(--line);
+    padding-bottom:14px;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--pantry);
+    color:var(--paper);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    padding:6px 8px 6px 12px;
+    border-radius:999px;
+  }
+  .chip button{
+    background:none;border:none;color:var(--paper);
+    font-size:14px;line-height:1;opacity:.7;padding:2px;
+  }
+  .chip button:hover{opacity:1;color:var(--butter);}
+  #ingredientInput{
+    flex:1; min-width:180px;
+    border:none; outline:none;
+    background:transparent;
+    font-family:'Source Serif 4', serif;
+    font-size:16px;
+    padding:6px 4px;
+    color:var(--ink);
+  }
+  .suggest-row{
+    display:flex; gap:6px; flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .suggest-row button{
+    background:var(--paper-shade);
+    border:1px solid var(--line);
+    border-radius:999px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:5px 10px;
+    color:var(--ink-soft);
+  }
+  .suggest-row button:hover{ border-color:var(--sage); color:var(--pantry); }
+
+  .filters-row{
+    display:flex; gap:16px; flex-wrap:wrap;
+    margin-top:16px;
+  }
+  .filter-group{ min-width:150px; }
+  select{
+    width:100%;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .filters-row .filter-group:last-child{
+    margin-left:auto;
+    display:flex; align-items:flex-end;
+  }
+  .btn-find{
+    background:var(--tomato);
+    color:var(--paper);
+    border:none;
+    border-radius:4px;
+    padding:11px 20px;
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .btn-find:hover{ background:#a63a0c; }
+
+  .result-count{
+    max-width:960px;
+    margin:0 auto;
+    padding:0 24px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+    display:flex; align-items:center; gap:10px;
+  }
+  .result-count .n{ color:var(--tomato); font-weight:600; }
+
+  /* ---------- results grid ---------- */
+  .grid{
+    max-width:960px;
+    margin:20px auto 80px;
+    padding:0 24px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px,1fr));
+    gap:22px;
+  }
+  .rcard{
+    position:relative;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:4px;
+    box-shadow:4px 4px 0 var(--sage-30);
+    padding:18px 16px 16px;
+    display:flex; flex-direction:column;
+    transition:transform .15s ease, box-shadow .15s ease;
+    text-align:left;
+  }
+  .rcard:hover{
+    transform:translate(-2px,-2px);
+    box-shadow:6px 6px 0 var(--sage-30);
+  }
+  .punchline{
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px dashed var(--line);
+    padding-bottom:10px; margin-bottom:10px;
+  }
+  .punch-dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--paper);
+    border:1px solid var(--line);
+  }
+  .rcard .cuisine-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--tomato);
+  }
+  .rcard h3{
+    font-size:19px;
+    color:var(--pantry);
+    line-height:1.15;
+    margin:2px 0 10px;
+  }
+  .rcard .meta{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    display:flex; gap:12px; margin-bottom:10px;
+  }
+  .match-bar-wrap{
+    height:5px; background:var(--paper-shade);
+    border-radius:3px; overflow:hidden; margin-bottom:8px;
+  }
+  .match-bar{
+    height:100%; background:var(--sage);
+  }
+  .match-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px; color:var(--ink-soft); margin-bottom:12px;
+  }
+  .rcard button.open{
+    margin-top:auto;
+    background:var(--pantry);
+    color:var(--paper);
+    border:none; border-radius:3px;
+    padding:9px 12px;
+    font-family:'Oswald', sans-serif;
+    font-size:12.5px; letter-spacing:.04em; text-transform:uppercase;
+    font-weight:600;
+  }
+  .rcard button.open:hover{ background:var(--pantry-light); }
+
+  .empty-state{
+    max-width:520px; margin:60px auto; text-align:center;
+    padding:0 24px;
+  }
+  .empty-state .display{ font-size:22px; color:var(--pantry); margin-bottom:8px;}
+  .empty-state p{ color:var(--ink-soft); }
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(35,32,27,.55);
+    display:none; align-items:flex-start; justify-content:center;
+    padding:40px 16px; overflow-y:auto; z-index:100;
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background:var(--card);
+    max-width:640px; width:100%;
+    border-radius:6px;
+    padding:0;
+    position:relative;
+    box-shadow:8px 8px 0 rgba(43,58,47,.25);
+    animation:pop .15s ease;
+  }
+  @keyframes pop{ from{ transform:translateY(8px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
+  .modal-head{
+    background:var(--pantry); color:var(--paper);
+    padding:22px 26px; border-radius:6px 6px 0 0;
+    border-bottom:4px solid var(--butter);
+  }
+  .modal-head .cuisine-tag{ color:var(--butter); font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em;}
+  .modal-head h2{ font-size:26px; margin-top:6px; }
+  .modal-close{
+    position:absolute; top:16px; right:16px;
+    background:transparent; border:1px solid var(--sage);
+    color:var(--paper); width:30px; height:30px; border-radius:50%;
+    font-size:16px; line-height:1;
+  }
+  .modal-close:hover{ background:var(--tomato); border-color:var(--tomato); }
+  .modal-body{ padding:24px 26px 30px; }
+  .servings-row{
+    display:flex; align-items:center; gap:12px;
+    font-family:'IBM Plex Mono', monospace; font-size:13px;
+    margin-bottom:20px; color:var(--ink-soft);
+  }
+  .stepper{ display:flex; align-items:center; gap:8px; }
+  .stepper button{
+    width:26px; height:26px; border-radius:50%;
+    border:1px solid var(--line); background:var(--paper);
+    font-size:15px; color:var(--pantry);
+  }
+  .stepper button:hover{ border-color:var(--sage); }
+  .stepper .n{ min-width:16px; text-align:center; color:var(--ink); font-weight:600; }
+
+  .modal-body h4{
+    font-size:13px; color:var(--tomato); letter-spacing:.08em; margin-bottom:10px;
+  }
+  .ingredient-list{
+    list-style:none; margin:0 0 26px; padding:0;
+    font-family:'IBM Plex Mono', monospace; font-size:14px;
+  }
+  .ingredient-list li{
+    display:flex; justify-content:space-between;
+    padding:7px 0; border-bottom:1px dotted var(--line);
+  }
+  .ingredient-list li.have{ color:var(--pantry); }
+  .ingredient-list li .amt{ color:var(--ink-soft); }
+  .ingredient-list li.have .amt{ color:var(--pantry); }
+  .steps-list{ margin:0; padding:0; list-style:none; counter-reset:step; }
+  .steps-list li{
+    counter-increment:step;
+    display:flex; gap:14px;
+    margin-bottom:16px;
+    line-height:1.55;
+  }
+  .steps-list li::before{
+    content:counter(step);
+    font-family:'Oswald', sans-serif;
+    font-weight:700; font-size:14px;
+    background:var(--butter); color:var(--pantry);
+    min-width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+
+  footer{
+    text-align:center; padding:30px 20px 50px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px; color:var(--ink-soft);
+  }
+
+  @media (max-width:600px){
+    header.top{padding:14px 18px;}
+    .filters-row .filter-group:last-child{ margin-left:0; width:100%; }
+    .btn-find{ width:100%; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wordmark">PANTRY<span class="dot">.</span></div>
+  <div class="top-tag">cook what you have</div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">RECIPE FINDER</div>
+  <h1>What's in your kitchen?</h1>
+  <p class="lede">Add the ingredients you've got, pick a cuisine or a meal, and we'll sort every recipe by how close it is to ready.</p>
+
+  <div class="builder">
+    <label for="ingredientInput">Ingredients on hand</label>
+    <div class="chip-input-row" id="chipRow">
+      <input id="ingredientInput" type="text" placeholder="Type an ingredient and press Enter…" autocomplete="off">
+    </div>
+    <div class="suggest-row" id="suggestRow"></div>
+
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="cuisineSelect">Cuisine</label>
+        <select id="cuisineSelect"><option value="">Any cuisine</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="mealSelect">Meal</label>
+        <select id="mealSelect"><option value="">Any meal</option></select>
+      </div>
+      <div class="filter-group">
+        <label for="dietSelect">Diet</label>
+        <select id="dietSelect"><option value="">Any diet</option></select>
+      </div>
+      <div class="filter-group">
+        <button class="btn-find" id="findBtn">Find recipes</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="result-count" id="resultCount"></div>
+<div class="grid" id="grid"></div>
+
+<footer>Pantry — 30 built-in recipes, matched entirely in your browser. Nothing you type leaves this page.</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const RECIPES = [
+  {id:1, title:"Weeknight Tomato Basil Pasta", cuisine:"Italian", meal:"Dinner", diet:["vegetarian"], time:25, servings:4, difficulty:"Easy",
+    ingredients:[["pasta","400 g"],["tomato","6, chopped"],["garlic","3 cloves"],["olive oil","3 tbsp"],["basil","1 handful"],["parmesan","50 g, grated"],["salt","to taste"]],
+    steps:["Boil pasta in salted water until al dente; reserve a cup of the water.","Warm olive oil in a wide pan, sauté sliced garlic until fragrant.","Add chopped tomato and simmer until it breaks down, about 10 minutes.","Toss in the drained pasta with a splash of pasta water, then basil and parmesan.","Season and serve immediately."]},
+  {id:2, title:"Chicken & Vegetable Stir-Fry", cuisine:"Chinese", meal:"Dinner", diet:["gluten-free option"], time:25, servings:3, difficulty:"Easy",
+    ingredients:[["chicken breast","400 g, sliced"],["broccoli","1 head"],["carrot","2, sliced"],["garlic","2 cloves"],["ginger","1 tbsp, minced"],["soy sauce","3 tbsp"],["sesame oil","1 tbsp"],["rice","2 cups, cooked"]],
+    steps:["Marinate sliced chicken in a splash of soy sauce for 10 minutes.","Heat oil in a wok, stir-fry chicken until browned; set aside.","Stir-fry broccoli and carrot with garlic and ginger until crisp-tender.","Return chicken to the wok, add remaining soy sauce and sesame oil.","Serve hot over rice."]},
+  {id:3, title:"Classic Beef Tacos", cuisine:"Mexican", meal:"Dinner", diet:[], time:30, servings:4, difficulty:"Easy",
+    ingredients:[["ground beef","500 g"],["onion","1, diced"],["garlic","2 cloves"],["cumin","1 tsp"],["chili powder","1 tsp"],["tortillas","8"],["lettuce","1 cup, shredded"],["cheese","1 cup, shredded"],["tomato","1, diced"]],
+    steps:["Brown beef with onion and garlic in a skillet.","Stir in cumin and chili powder, cook 2 minutes more.","Warm tortillas in a dry pan or oven.","Fill tortillas with beef, lettuce, cheese and tomato.","Serve with lime and hot sauce."]},
+  {id:4, title:"Chickpea & Spinach Curry", cuisine:"Indian", meal:"Dinner", diet:["vegan","vegetarian","gluten-free"], time:35, servings:4, difficulty:"Easy",
+    ingredients:[["chickpeas","2 cans"],["spinach","4 cups"],["onion","1, diced"],["garlic","3 cloves"],["ginger","1 tbsp"],["tomato","2, chopped"],["coconut milk","1 can"],["curry powder","2 tbsp"],["rice","2 cups, cooked"]],
+    steps:["Sauté onion, garlic and ginger until soft.","Add curry powder and toast for a minute.","Add tomato and cook until saucy, then stir in chickpeas and coconut milk.","Simmer 15 minutes, then fold in spinach until wilted.","Serve over rice."]},
+  {id:5, title:"Greek Salad with Feta", cuisine:"Mediterranean", meal:"Lunch", diet:["vegetarian","gluten-free"], time:15, servings:2, difficulty:"Easy",
+    ingredients:[["cucumber","1, sliced"],["tomato","3, chunked"],["red onion","0.5, sliced"],["feta","150 g"],["olives","0.5 cup"],["olive oil","3 tbsp"],["oregano","1 tsp"]],
+    steps:["Combine cucumber, tomato, red onion and olives in a bowl.","Top with slabs of feta.","Drizzle with olive oil, sprinkle oregano, and season.","Toss gently just before serving."]},
+  {id:6, title:"Shakshuka", cuisine:"Middle Eastern", meal:"Breakfast", diet:["vegetarian","gluten-free"], time:30, servings:3, difficulty:"Easy",
+    ingredients:[["eggs","5"],["tomato","6, chopped"],["onion","1, diced"],["bell pepper","1, diced"],["garlic","3 cloves"],["cumin","1 tsp"],["paprika","1 tsp"],["feta","optional, 50 g"]],
+    steps:["Sauté onion and bell pepper until soft.","Add garlic, cumin and paprika, cook 1 minute.","Add tomato and simmer into a thick sauce, about 12 minutes.","Make wells in the sauce and crack in the eggs; cover and cook until whites set.","Top with crumbled feta and serve with bread."]},
+  {id:7, title:"Miso Ramen Bowl", cuisine:"Japanese", meal:"Dinner", diet:[], time:35, servings:2, difficulty:"Medium",
+    ingredients:[["ramen noodles","2 packs"],["miso paste","3 tbsp"],["garlic","2 cloves"],["ginger","1 tbsp"],["egg","2, soft-boiled"],["scallion","2, sliced"],["nori","2 sheets"],["chicken stock","4 cups"]],
+    steps:["Simmer stock with garlic and ginger for 10 minutes.","Whisk in miso paste until dissolved.","Cook noodles separately according to package.","Divide noodles into bowls, ladle over broth.","Top with soft-boiled egg, scallion and nori."]},
+  {id:8, title:"French Onion Soup", cuisine:"French", meal:"Dinner", diet:["vegetarian option"], time:60, servings:4, difficulty:"Medium",
+    ingredients:[["onion","6, thinly sliced"],["butter","3 tbsp"],["beef stock","6 cups"],["thyme","1 tsp"],["baguette","4 slices"],["gruyere","1 cup, grated"]],
+    steps:["Cook onions slowly in butter over low heat until deeply caramelized, 40 minutes.","Add stock and thyme, simmer 15 minutes.","Ladle into oven-safe bowls, top with baguette slice and gruyere.","Broil until cheese is bubbling and golden."]},
+  {id:9, title:"Pancakes from Scratch", cuisine:"American", meal:"Breakfast", diet:["vegetarian"], time:20, servings:4, difficulty:"Easy",
+    ingredients:[["flour","2 cups"],["milk","1.5 cups"],["egg","2"],["sugar","2 tbsp"],["baking powder","2 tsp"],["butter","3 tbsp, melted"],["salt","0.5 tsp"]],
+    steps:["Whisk dry ingredients together.","In another bowl, whisk milk, egg and melted butter.","Combine wet and dry ingredients until just mixed; don't overmix.","Cook 1/4-cup portions on a hot buttered griddle until bubbles form, then flip.","Serve with syrup and fruit."]},
+  {id:10, title:"Thai Green Curry", cuisine:"Thai", meal:"Dinner", diet:["gluten-free"], time:35, servings:4, difficulty:"Medium",
+    ingredients:[["chicken breast","400 g, sliced"],["green curry paste","3 tbsp"],["coconut milk","2 cans"],["eggplant","1, cubed"],["bell pepper","1, sliced"],["basil","1 handful"],["fish sauce","1 tbsp"],["rice","2 cups, cooked"]],
+    steps:["Fry curry paste in a spoon of coconut cream until fragrant.","Add chicken and cook until sealed.","Pour in remaining coconut milk, eggplant and bell pepper; simmer 15 minutes.","Stir in fish sauce and basil.","Serve over rice."]},
+  {id:11, title:"Falafel Wraps", cuisine:"Middle Eastern", meal:"Lunch", diet:["vegan","vegetarian"], time:40, servings:4, difficulty:"Medium",
+    ingredients:[["chickpeas","2 cups, soaked"],["onion","1"],["garlic","3 cloves"],["parsley","1 cup"],["cumin","2 tsp"],["coriander","1 tsp"],["flour","2 tbsp"],["pita","4"],["tahini","4 tbsp"]],
+    steps:["Pulse chickpeas, onion, garlic, parsley and spices in a food processor until coarse.","Stir in flour, form into small patties.","Fry or bake until golden and crisp.","Warm pita, fill with falafel, salad and a drizzle of tahini."]},
+  {id:12, title:"Baked Salmon with Lemon", cuisine:"Mediterranean", meal:"Dinner", diet:["gluten-free"], time:25, servings:2, difficulty:"Easy",
+    ingredients:[["salmon","2 fillets"],["lemon","1"],["olive oil","2 tbsp"],["garlic","2 cloves"],["dill","1 tbsp"],["asparagus","1 bunch"]],
+    steps:["Preheat oven to 200°C (400°F).","Lay salmon and asparagus on a tray, drizzle with oil and minced garlic.","Top salmon with lemon slices and dill.","Bake 12–15 minutes until salmon flakes easily.","Serve with the roasted asparagus."]},
+  {id:13, title:"Vegetable Fried Rice", cuisine:"Chinese", meal:"Lunch", diet:["vegetarian","vegan option"], time:20, servings:3, difficulty:"Easy",
+    ingredients:[["rice","3 cups, cooked & cold"],["egg","2"],["carrot","1, diced"],["peas","0.5 cup"],["scallion","3, sliced"],["soy sauce","3 tbsp"],["garlic","2 cloves"],["sesame oil","1 tbsp"]],
+    steps:["Scramble egg in a hot wok, then set aside.","Stir-fry garlic, carrot and peas until tender.","Add cold rice, breaking up clumps, and stir-fry until heated through.","Return egg, add soy sauce and sesame oil, toss with scallion.","Serve hot."]},
+  {id:14, title:"Margherita Flatbread", cuisine:"Italian", meal:"Snack", diet:["vegetarian"], time:20, servings:2, difficulty:"Easy",
+    ingredients:[["flatbread","2"],["tomato","2, sliced"],["mozzarella","150 g"],["basil","1 handful"],["olive oil","1 tbsp"]],
+    steps:["Preheat oven to 220°C (425°F).","Lay flatbreads on a tray, top with tomato slices and torn mozzarella.","Bake 8–10 minutes until cheese melts and edges crisp.","Finish with basil and a drizzle of olive oil."]},
+  {id:15, title:"Lentil Soup", cuisine:"Mediterranean", meal:"Lunch", diet:["vegan","vegetarian","gluten-free"], time:40, servings:4, difficulty:"Easy",
+    ingredients:[["lentils","1.5 cups"],["carrot","2, diced"],["celery","2 stalks, diced"],["onion","1, diced"],["garlic","3 cloves"],["cumin","1 tsp"],["vegetable stock","6 cups"],["lemon","0.5"]],
+    steps:["Sauté onion, carrot, celery and garlic until soft.","Stir in cumin, then add lentils and stock.","Simmer 25–30 minutes until lentils are tender.","Blend partially for a creamier texture if you like.","Finish with a squeeze of lemon."]},
+  {id:16, title:"Korean Beef Bibimbap", cuisine:"Korean", meal:"Dinner", diet:[], time:35, servings:2, difficulty:"Medium",
+    ingredients:[["ground beef","300 g"],["rice","2 cups, cooked"],["spinach","2 cups"],["carrot","1, julienned"],["egg","2"],["soy sauce","2 tbsp"],["sesame oil","2 tbsp"],["gochujang","2 tbsp"]],
+    steps:["Cook beef with soy sauce and a little sesame oil until browned.","Quickly blanch spinach; sauté carrot separately until just tender.","Fry eggs sunny-side up.","Arrange rice in bowls, top with beef and vegetables in sections.","Add a fried egg and a spoon of gochujang; mix before eating."]},
+  {id:17, title:"Caprese Sandwich", cuisine:"Italian", meal:"Lunch", diet:["vegetarian"], time:10, servings:1, difficulty:"Easy",
+    ingredients:[["baguette","1 section"],["tomato","1, sliced"],["mozzarella","100 g, sliced"],["basil","6 leaves"],["olive oil","1 tbsp"],["balsamic","1 tsp"]],
+    steps:["Slice bread and drizzle with olive oil.","Layer tomato, mozzarella and basil.","Finish with a drizzle of balsamic and season.","Close and slice in half."]},
+  {id:18, title:"Chicken Tikka Masala", cuisine:"Indian", meal:"Dinner", diet:["gluten-free"], time:45, servings:4, difficulty:"Medium",
+    ingredients:[["chicken breast","500 g, cubed"],["yogurt","0.5 cup"],["garam masala","2 tbsp"],["onion","1, diced"],["garlic","3 cloves"],["ginger","1 tbsp"],["tomato","1 can, crushed"],["cream","0.5 cup"],["rice","2 cups, cooked"]],
+    steps:["Marinate chicken in yogurt and half the garam masala for 20 minutes (or overnight).","Sear chicken in a hot pan; set aside.","Sauté onion, garlic and ginger, add remaining garam masala.","Add crushed tomato, simmer 10 minutes, then stir in cream.","Return chicken, simmer until cooked through. Serve over rice."]},
+  {id:19, title:"Banana Oat Pancakes", cuisine:"American", meal:"Breakfast", diet:["vegetarian","gluten-free option"], time:15, servings:2, difficulty:"Easy",
+    ingredients:[["banana","2, mashed"],["oats","1.5 cups"],["egg","2"],["milk","0.5 cup"],["baking powder","1 tsp"],["cinnamon","0.5 tsp"]],
+    steps:["Blend or whisk all ingredients until mostly smooth.","Let batter rest 5 minutes to thicken.","Cook small rounds on a hot buttered pan, flipping once bubbles form.","Serve with extra banana and a drizzle of honey."]},
+  {id:20, title:"Spiced Roasted Chickpeas", cuisine:"Mediterranean", meal:"Snack", diet:["vegan","vegetarian","gluten-free"], time:35, servings:4, difficulty:"Easy",
+    ingredients:[["chickpeas","2 cans, drained"],["olive oil","2 tbsp"],["cumin","1 tsp"],["paprika","1 tsp"],["salt","to taste"]],
+    steps:["Preheat oven to 200°C (400°F) and pat chickpeas fully dry.","Toss with oil and spices.","Roast 25–30 minutes, shaking the pan halfway, until crisp.","Cool slightly before serving — they crisp further as they cool."]},
+  {id:21, title:"Beef Stroganoff", cuisine:"French", meal:"Dinner", diet:[], time:35, servings:4, difficulty:"Medium",
+    ingredients:[["beef strips","500 g"],["mushroom","300 g, sliced"],["onion","1, diced"],["garlic","2 cloves"],["sour cream","1 cup"],["beef stock","1 cup"],["mustard","1 tbsp"],["pasta","400 g, egg noodles"]],
+    steps:["Sear beef strips quickly in batches; set aside.","Sauté onion, mushroom and garlic until browned.","Add stock and mustard, simmer 5 minutes.","Stir in sour cream and return beef; warm through without boiling.","Serve over egg noodles."]},
+  {id:22, title:"Vegetable Quesadillas", cuisine:"Mexican", meal:"Lunch", diet:["vegetarian"], time:20, servings:2, difficulty:"Easy",
+    ingredients:[["tortillas","4"],["cheese","1.5 cups, shredded"],["bell pepper","1, sliced"],["onion","0.5, sliced"],["mushroom","1 cup, sliced"],["cumin","0.5 tsp"]],
+    steps:["Sauté bell pepper, onion and mushroom with cumin until soft.","Scatter cheese and vegetables over half of each tortilla, fold over.","Cook in a dry pan 2–3 minutes per side until golden and cheese melts.","Slice into wedges and serve with salsa."]},
+  {id:23, title:"Congee with Scallion & Ginger", cuisine:"Chinese", meal:"Breakfast", diet:["vegan","vegetarian","gluten-free"], time:50, servings:3, difficulty:"Easy",
+    ingredients:[["rice","1 cup"],["vegetable stock","8 cups"],["ginger","1 tbsp, sliced"],["scallion","3, sliced"],["soy sauce","2 tbsp"],["sesame oil","1 tsp"]],
+    steps:["Combine rice, stock and ginger in a pot; bring to a boil.","Reduce heat and simmer, stirring occasionally, 40–45 minutes until thick and creamy.","Season with soy sauce.","Serve topped with scallion and a drizzle of sesame oil."]},
+  {id:24, title:"Pesto Gnocchi", cuisine:"Italian", meal:"Dinner", diet:["vegetarian"], time:20, servings:3, difficulty:"Easy",
+    ingredients:[["gnocchi","500 g"],["basil","2 cups"],["pine nuts","0.25 cup"],["parmesan","0.5 cup, grated"],["garlic","2 cloves"],["olive oil","0.5 cup"]],
+    steps:["Blend basil, pine nuts, parmesan, garlic and olive oil into a pesto.","Boil gnocchi until they float, then drain.","Toss hot gnocchi with pesto off the heat.","Serve with extra parmesan."]},
+  {id:25, title:"Turkey Chili", cuisine:"American", meal:"Dinner", diet:["gluten-free"], time:45, servings:5, difficulty:"Easy",
+    ingredients:[["ground turkey","500 g"],["kidney beans","1 can"],["tomato","1 can, crushed"],["onion","1, diced"],["garlic","3 cloves"],["chili powder","2 tbsp"],["cumin","1 tsp"],["bell pepper","1, diced"]],
+    steps:["Brown turkey with onion, garlic and bell pepper.","Stir in chili powder and cumin.","Add crushed tomato and kidney beans, simmer 30 minutes.","Adjust seasoning and serve with your favorite toppings."]},
+  {id:26, title:"Cucumber Yogurt Salad (Raita)", cuisine:"Indian", meal:"Snack", diet:["vegetarian","gluten-free"], time:10, servings:4, difficulty:"Easy",
+    ingredients:[["yogurt","2 cups"],["cucumber","1, grated"],["cumin","0.5 tsp, toasted"],["mint","1 tbsp, chopped"],["salt","to taste"]],
+    steps:["Squeeze excess water from grated cucumber.","Mix into yogurt with cumin, mint and salt.","Chill before serving alongside spiced dishes."]},
+  {id:27, title:"Mushroom Risotto", cuisine:"Italian", meal:"Dinner", diet:["vegetarian","gluten-free"], time:40, servings:4, difficulty:"Medium",
+    ingredients:[["arborio rice","1.5 cups"],["mushroom","300 g, sliced"],["onion","1, diced"],["garlic","2 cloves"],["vegetable stock","5 cups, warm"],["parmesan","0.75 cup, grated"],["butter","2 tbsp"],["white wine","0.5 cup, optional"]],
+    steps:["Sauté mushrooms until golden; set aside.","Cook onion and garlic in butter, add rice and toast 1 minute.","Deglaze with wine if using, then add warm stock one ladle at a time, stirring until absorbed.","Continue until rice is creamy and just tender, about 20 minutes.","Fold in mushrooms and parmesan; finish with a knob of butter."]},
+  {id:28, title:"Egg Fried Noodles", cuisine:"Chinese", meal:"Lunch", diet:["vegetarian option"], time:15, servings:2, difficulty:"Easy",
+    ingredients:[["noodles","250 g"],["egg","2"],["carrot","1, julienned"],["cabbage","1 cup, shredded"],["soy sauce","3 tbsp"],["garlic","2 cloves"],["sesame oil","1 tbsp"]],
+    steps:["Cook noodles according to package; drain.","Scramble egg in a hot wok, set aside.","Stir-fry garlic, carrot and cabbage until just tender.","Add noodles, soy sauce and egg back in; toss well.","Finish with sesame oil."]},
+  {id:29, title:"Apple Cinnamon Oatmeal", cuisine:"American", meal:"Breakfast", diet:["vegetarian","vegan option","gluten-free option"], time:15, servings:2, difficulty:"Easy",
+    ingredients:[["oats","1.5 cups"],["milk","2 cups"],["apple","1, diced"],["cinnamon","1 tsp"],["honey","2 tbsp"]],
+    steps:["Combine oats and milk in a pot, bring to a simmer.","Stir in diced apple and cinnamon.","Cook 5–7 minutes, stirring, until creamy.","Drizzle with honey to serve."]},
+  {id:30, title:"Hummus with Warm Pita", cuisine:"Middle Eastern", meal:"Snack", diet:["vegan","vegetarian"], time:15, servings:4, difficulty:"Easy",
+    ingredients:[["chickpeas","2 cans"],["tahini","0.33 cup"],["garlic","2 cloves"],["lemon","1"],["olive oil","3 tbsp"],["cumin","0.5 tsp"],["pita","4"]],
+    steps:["Blend chickpeas, tahini, garlic, lemon juice and cumin until smooth, adding water as needed.","Taste and adjust salt and lemon.","Spoon into a bowl, swirl with olive oil.","Serve with warm pita."]}
+];
+
+const COMMON_INGREDIENTS = ["chicken breast","garlic","onion","tomato","rice","egg","pasta","cheese","olive oil","basil","ginger","soy sauce","spinach","lemon"];
+
+/* ---------------- STATE ---------------- */
+let chips = [];
+let currentServings = {};
+
+/* ---------------- SETUP ---------------- */
+function uniqueSorted(arr){ return [...new Set(arr)].sort(); }
+
+function populateSelect(id, values, defaultLabel){
+  const sel = document.getElementById(id);
+  values.forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+}
+
+populateSelect('cuisineSelect', uniqueSorted(RECIPES.map(r=>r.cuisine)));
+populateSelect('mealSelect', uniqueSorted(RECIPES.map(r=>r.meal)));
+populateSelect('dietSelect', uniqueSorted(RECIPES.flatMap(r=>r.diet)));
+
+const suggestRow = document.getElementById('suggestRow');
+COMMON_INGREDIENTS.forEach(ing=>{
+  const b = document.createElement('button');
+  b.textContent = '+ ' + ing;
+  b.addEventListener('click', ()=> addChip(ing));
+  suggestRow.appendChild(b);
+});
+
+/* ---------------- CHIP INPUT ---------------- */
+const chipRow = document.getElementById('chipRow');
+const ingredientInput = document.getElementById('ingredientInput');
+
+function renderChips(){
+  chipRow.querySelectorAll('.chip').forEach(c=>c.remove());
+  chips.forEach(name=>{
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.innerHTML = `${name} <button type="button" aria-label="Remove ${name}">×</button>`;
+    chip.querySelector('button').addEventListener('click', ()=>{
+      chips = chips.filter(c=>c!==name);
+      renderChips();
+      runSearch();
+    });
+    chipRow.insertBefore(chip, ingredientInput);
+  });
+}
+
+function addChip(raw){
+  const name = raw.trim().toLowerCase();
+  if(!name || chips.includes(name)) return;
+  chips.push(name);
+  renderChips();
+  runSearch();
+}
+
+ingredientInput.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    addChip(ingredientInput.value);
+    ingredientInput.value = '';
+  } else if(e.key === 'Backspace' && ingredientInput.value === '' && chips.length){
+    chips.pop();
+    renderChips();
+    runSearch();
+  }
+});
+
+document.getElementById('findBtn').addEventListener('click', runSearch);
+document.getElementById('cuisineSelect').addEventListener('change', runSearch);
+document.getElementById('mealSelect').addEventListener('change', runSearch);
+document.getElementById('dietSelect').addEventListener('change', runSearch);
+
+/* ---------------- SEARCH / MATCHING ---------------- */
+function ingredientMatches(recipe){
+  if(chips.length === 0) return {count:0, total:recipe.ingredients.length, haveSet:new Set()};
+  const haveSet = new Set();
+  recipe.ingredients.forEach(([name])=>{
+    const lname = name.toLowerCase();
+    if(chips.some(c=> lname.includes(c) || c.includes(lname))) haveSet.add(name);
+  });
+  return {count:haveSet.size, total:recipe.ingredients.length, haveSet};
+}
+
+function runSearch(){
+  const cuisine = document.getElementById('cuisineSelect').value;
+  const meal = document.getElementById('mealSelect').value;
+  const diet = document.getElementById('dietSelect').value;
+
+  let results = RECIPES.filter(r=>{
+    if(cuisine && r.cuisine !== cuisine) return false;
+    if(meal && r.meal !== meal) return false;
+    if(diet && !r.diet.includes(diet)) return false;
+    return true;
+  }).map(r=>({recipe:r, match: ingredientMatches(r)}));
+
+  if(chips.length > 0){
+    results = results.filter(r=> r.match.count > 0);
+    results.sort((a,b)=> (b.match.count/b.match.total) - (a.match.count/a.match.total));
+  } else {
+    results.sort((a,b)=> a.recipe.title.localeCompare(b.recipe.title));
+  }
+
+  renderResults(results);
+}
+
+/* ---------------- RENDER ---------------- */
+const grid = document.getElementById('grid');
+const resultCount = document.getElementById('resultCount');
+
+function renderResults(results){
+  grid.innerHTML = '';
+  resultCount.innerHTML = results.length
+    ? `<span class="n">${results.length}</span> recipe${results.length===1?'':'s'} found`
+    : '';
+
+  if(results.length === 0){
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1;">
+        <div class="display">Nothing matches — yet</div>
+        <p>Try removing an ingredient or filter, or add a staple like garlic, onion or rice.</p>
+      </div>`;
+    return;
+  }
+
+  results.forEach(({recipe, match})=>{
+    const card = document.createElement('div');
+    card.className = 'rcard';
+    const showMatch = chips.length > 0;
+    card.innerHTML = `
+      <div class="punchline">
+        <span class="cuisine-tag">${recipe.cuisine} · ${recipe.meal}</span>
+        <span class="punch-dot"></span>
+      </div>
+      <h3>${recipe.title}</h3>
+      <div class="meta"><span>${recipe.time} min</span><span>${recipe.difficulty}</span><span>Serves ${recipe.servings}</span></div>
+      ${showMatch ? `
+        <div class="match-bar-wrap"><div class="match-bar" style="width:${(match.count/match.total*100).toFixed(0)}%"></div></div>
+        <div class="match-label">${match.count}/${match.total} ingredients on hand</div>
+      ` : `<div class="match-label">&nbsp;</div>`}
+      <button class="open" type="button">View recipe</button>
+    `;
+    card.querySelector('.open').addEventListener('click', ()=> openModal(recipe));
+    grid.appendChild(card);
+  });
+}
+
+/* ---------------- MODAL ---------------- */
+const overlay = document.getElementById('overlay');
+const modalContent = document.getElementById('modalContent');
+
+function openModal(recipe){
+  currentServings[recipe.id] = currentServings[recipe.id] || recipe.servings;
+  renderModal(recipe);
+  overlay.classList.add('show');
+}
+
+function scaleAmount(amount, factor){
+  const m = amount.match(/^([\d.\/]+)(.*)$/);
+  if(!m) return amount;
+  let num = m[1];
+  let rest = m[2];
+  let val;
+  if(num.includes('/')){
+    const [n,d] = num.split('/').map(Number);
+    val = n/d;
+  } else {
+    val = parseFloat(num);
+  }
+  if(isNaN(val)) return amount;
+  const scaled = val * factor;
+  const rounded = Math.round(scaled * 100) / 100;
+  return `${rounded}${rest}`;
+}
+
+function renderModal(recipe){
+  const servings = currentServings[recipe.id];
+  const factor = servings / recipe.servings;
+  const match = ingredientMatches(recipe);
+
+  modalContent.innerHTML = `
+    <button class="modal-close" type="button" aria-label="Close">×</button>
+    <div class="modal-head">
+      <div class="cuisine-tag">${recipe.cuisine} · ${recipe.meal} · ${recipe.difficulty}</div>
+      <h2>${recipe.title}</h2>
+    </div>
+    <div class="modal-body">
+      <div class="servings-row">
+        <span>Servings</span>
+        <div class="stepper">
+          <button type="button" id="servDown" aria-label="Fewer servings">−</button>
+          <span class="n">${servings}</span>
+          <button type="button" id="servUp" aria-label="More servings">+</button>
+        </div>
+        <span>·</span>
+        <span>${recipe.time} min</span>
+      </div>
+
+      <h4>INGREDIENTS</h4>
+      <ul class="ingredient-list">
+        ${recipe.ingredients.map(([name,amount])=>{
+          const have = match.haveSet.has(name);
+          return `<li class="${have?'have':''}"><span>${have?'✓ ':''}${name}</span><span class="amt">${scaleAmount(amount, factor)}</span></li>`;
+        }).join('')}
+      </ul>
+
+      <h4>STEPS</h4>
+      <ol class="steps-list">
+        ${recipe.steps.map(s=>`<li>${s}</li>`).join('')}
+      </ol>
+    </div>
+  `;
+
+  modalContent.querySelector('.modal-close').addEventListener('click', closeModal);
+  modalContent.querySelector('#servDown').addEventListener('click', ()=>{
+    if(currentServings[recipe.id] > 1){ currentServings[recipe.id]--; renderModal(recipe); }
+  });
+  modalContent.querySelector('#servUp').addEventListener('click', ()=>{
+    currentServings[recipe.id]++; renderModal(recipe);
+  });
+}
+
+function closeModal(){ overlay.classList.remove('show'); }
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
+
+/* ---------------- INITIAL RENDER ---------------- */
+runSearch();
+</script>
+</body>
+</html>
